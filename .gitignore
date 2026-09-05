@@ -47,3 +47,11 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Python modeling workspace
+fraud-detection-app/.venv/
+fraud-detection-app/__pycache__/
+fraud-detection-app/**/__pycache__/
+fraud-detection-app/models/*.joblib
+fraud-detection-app/models/*.pkl
+fraud-detection-app/data/*.csv

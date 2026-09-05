@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: fraud
+    description: Fraud scoring and monitoring operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,77 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /predict:
+    post:
+      operationId: predictTransaction
+      tags: [fraud]
+      summary: Score a payment transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "200":
+          description: Fraud prediction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FraudPrediction"
+        "400":
+          description: Invalid transaction input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [fraud]
+      summary: List recent scored transactions
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 1
+            maximum: 20
+            default: 8
+      responses:
+        "200":
+          description: Recent transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionRecord"
+  /metrics:
+    get:
+      operationId: getModelMetrics
+      tags: [fraud]
+      summary: Get model evaluation metrics
+      responses:
+        "200":
+          description: Model performance metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelMetrics"
+  /dashboard:
+    get:
+      operationId: getDashboardSummary
+      tags: [fraud]
+      summary: Get fraud monitoring dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +106,170 @@ components:
           type: string
       required:
         - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    TransactionInput:
+      type: object
+      properties:
+        transaction_amount:
+          type: number
+          minimum: 0.01
+        transaction_hour:
+          type: number
+          minimum: 0
+          maximum: 23
+        day_of_week:
+          type: number
+          minimum: 0
+          maximum: 6
+        merchant_category:
+          type: string
+          enum: [retail, travel, digital_goods, grocery, dining, services]
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+        device_type:
+          type: string
+          enum: [mobile, desktop, tablet]
+        is_new_device:
+          type: boolean
+        transactions_last_1h:
+          type: number
+          minimum: 0
+        transactions_last_24h:
+          type: number
+          minimum: 0
+        avg_spend:
+          type: number
+          minimum: 0
+        spend_std_dev:
+          type: number
+          minimum: 0
+        account_age_days:
+          type: number
+          minimum: 0
+      required:
+        - transaction_amount
+        - transaction_hour
+        - day_of_week
+        - merchant_category
+        - country
+        - device_type
+        - is_new_device
+        - transactions_last_1h
+        - transactions_last_24h
+        - avg_spend
+        - spend_std_dev
+        - account_age_days
+    Reason:
+      type: object
+      properties:
+        feature:
+          type: string
+        impact:
+          type: string
+          enum: [positive, negative]
+        detail:
+          type: string
+        contribution:
+          type: number
+      required: [feature, impact, detail, contribution]
+    FraudPrediction:
+      type: object
+      properties:
+        fraud_probability:
+          type: number
+          minimum: 0
+          maximum: 1
+        prediction:
+          type: string
+          enum: [HIGH RISK, LOW RISK]
+        top_reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reason"
+        scored_at:
+          type: string
+        model_version:
+          type: string
+      required: [fraud_probability, prediction, top_reasons, scored_at, model_version]
+    TransactionRecord:
+      allOf:
+        - $ref: "#/components/schemas/TransactionInput"
+        - type: object
+          properties:
+            id:
+              type: string
+            fraud_probability:
+              type: number
+            prediction:
+              type: string
+              enum: [HIGH RISK, LOW RISK]
+            created_at:
+              type: string
+          required: [id, fraud_probability, prediction, created_at]
+    ModelMetrics:
+      type: object
+      properties:
+        model_name:
+          type: string
+        model_version:
+          type: string
+        precision:
+          type: number
+        recall:
+          type: number
+        f1_score:
+          type: number
+        roc_auc:
+          type: number
+        pr_auc:
+          type: number
+        confusion_matrix:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        roc_curve:
+          type: array
+          items:
+            $ref: "#/components/schemas/CurvePoint"
+        pr_curve:
+          type: array
+          items:
+            $ref: "#/components/schemas/CurvePoint"
+      required: [model_name, model_version, precision, recall, f1_score, roc_auc, pr_auc, confusion_matrix, roc_curve, pr_curve]
+    CurvePoint:
+      type: object
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+      required: [x, y]
+    DashboardSummary:
+      type: object
+      properties:
+        total_transactions:
+          type: number
+        flagged_transactions:
+          type: number
+        prevented_value:
+          type: number
+        alert_rate:
+          type: number
+        avg_probability:
+          type: number
+        model_status:
+          type: string
+          enum: [READY, TRAINING, DEGRADED]
+        last_updated:
+          type: string
+      required: [total_transactions, flagged_transactions, prevented_value, alert_rate, avg_probability, model_status, last_updated]
 

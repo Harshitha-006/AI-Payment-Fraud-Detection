@@ -1,0 +1,97 @@
+Build a complete AI Payment Fraud Detection web application and push it to GitHub.
+
+PROJECT OVERVIEW
+Build a real-time payment fraud detection system that predicts whether a
+transaction is fraudulent, with a fraud probability score and risk label.
+
+DATASET
+Use a public dataset (e.g., Kaggle "Credit Card Fraud Detection" or
+"IEEE-CIS Fraud Detection" — pick whichever is easier to load via
+kagglehub/opendatasets). If unavailable, generate a realistic synthetic
+dataset with these features:
+- transaction_amount
+- transaction_time (hour of day, day of week)
+- merchant_category
+- location (country/city or lat-long)
+- device_info (device type, new vs known device)
+- transaction_frequency (txns in last 1hr/24hr for that user)
+- historical_behavior (avg spend, std dev of spend, account age)
+- is_fraud (target label, imbalanced ~1-2% positive)
+
+MODELING PIPELINE
+1. EDA notebook: class imbalance check, feature distributions, correlation.
+2. Preprocessing: handle missing values, encode categoricals, scale
+   numeric features, handle class imbalance with SMOTE or class_weight.
+3. Train and compare these models:
+   - Logistic Regression (baseline)
+   - Random Forest
+   - XGBoost or LightGBM (primary/strong model)
+   - (Optional) a simple Neural Network (Keras/PyTorch)
+4. Evaluate with metrics suited to imbalanced data: precision, recall,
+   F1, ROC-AUC, PR-AUC, confusion matrix — NOT plain accuracy.
+5. Pick the best model (likely XGBoost/LightGBM) and tune it
+   (RandomizedSearchCV or Optuna).
+6. Add SHAP explainability: global feature importance plot + a function
+   that returns per-transaction SHAP values explaining why a specific
+   transaction was flagged.
+7. Save the final model (joblib/pickle) and the SHAP explainer.
+
+APP / SERVING LAYER
+Build a FastAPI backend with:
+- POST /predict endpoint: accepts transaction JSON, returns
+  { "fraud_probability": 0.92, "prediction": "HIGH RISK" | "LOW RISK",
+    "top_reasons": [...SHAP-based explanation...] }
+- GET /health endpoint
+- Pydantic schema validation for input
+- Model + explainer loaded once at startup
+
+Build a simple frontend (React or plain HTML/JS) with:
+- A form to input transaction details
+- Displays the fraud probability, risk label (color-coded), and top
+  contributing factors from SHAP
+- A dashboard tab showing model performance metrics (confusion matrix,
+  ROC curve) as static charts
+
+PROJECT STRUCTURE
+fraud-detection-app/
+├── data/                  # dataset or scripts to fetch it
+├── notebooks/             # EDA + model experimentation
+├── src/
+│   ├── preprocessing.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── explain.py         # SHAP logic
+│   └── predict.py
+├── models/                # saved model artifacts
+├── api/
+│   └── main.py            # FastAPI app
+├── frontend/
+├── tests/                 # unit tests for preprocessing + API
+├── requirements.txt
+├── Dockerfile
+├── .gitignore
+└── README.md
+
+DELIVERABLES
+- Working code for all steps above, runnable locally
+- README.md with: problem statement, architecture diagram (text/ASCII
+  is fine), setup instructions, how to train, how to run the API, how
+  to run the frontend, sample request/response, model performance
+  summary table
+- requirements.txt with pinned versions
+- Basic unit tests (pytest) for preprocessing and the /predict endpoint
+- Dockerfile so the API can be containerized
+
+GITHUB
+- Initialize a git repo (if not already)
+- Create a clean commit history (logical commits: data pipeline, model
+  training, API, frontend, tests, docs) — not one giant commit
+- Add a proper .gitignore (venv, __pycache__, model binaries if large,
+  .env)
+- Push to a new GitHub repo named "ai-payment-fraud-detection"
+- Confirm the push succeeded and share the repo URL
+
+Ask me for my GitHub username/repo visibility (public/private) before
+pushing if not already known. Otherwise proceed step by step, showing
+me progress after each major stage (EDA → training → API → frontend →
+tests → push).

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AI Payment Fraud Detection"
+description = "A real-time payment fraud detection workspace that scores transactions, explains risk factors, and surfaces model performance for fraud operations teams."
+version = "1.0.0"
+id = "artifacts/ai-payment-fraud-detection"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23744
+
+[services.development]
+run = "pnpm --filter @workspace/ai-payment-fraud-detection run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ai-payment-fraud-detection", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ai-payment-fraud-detection/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23744"
+BASE_PATH = "/"

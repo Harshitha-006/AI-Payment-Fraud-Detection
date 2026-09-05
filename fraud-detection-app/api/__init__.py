@@ -1,0 +1,1 @@
+"""Standalone FastAPI serving layer for the trained model."""
