@@ -61,11 +61,17 @@ export const PredictTransactionBody = zod.object({
 export const predictTransactionResponseFraudProbabilityMin = 0;
 export const predictTransactionResponseFraudProbabilityMax = 1;
 
+export const predictTransactionResponseRiskScoreMin = 0;
+export const predictTransactionResponseRiskScoreMax = 100;
+
 
 
 export const PredictTransactionResponse = zod.object({
   "fraud_probability": zod.number().min(predictTransactionResponseFraudProbabilityMin).max(predictTransactionResponseFraudProbabilityMax),
   "prediction": zod.enum(['HIGH RISK', 'LOW RISK']),
+  "risk_score": zod.number().min(predictTransactionResponseRiskScoreMin).max(predictTransactionResponseRiskScoreMax),
+  "decision": zod.enum(['APPROVE', 'REVIEW', 'BLOCK']),
+  "recommended_action": zod.string(),
   "top_reasons": zod.array(zod.object({
   "feature": zod.string(),
   "impact": zod.enum(['positive', 'negative']),
@@ -73,7 +79,20 @@ export const PredictTransactionResponse = zod.object({
   "contribution": zod.number()
 })),
   "scored_at": zod.string(),
-  "model_version": zod.string()
+  "model_version": zod.string(),
+  "investigation": zod.object({
+  "headline": zod.string(),
+  "transaction_summary": zod.string(),
+  "evidence": zod.array(zod.object({
+  "feature": zod.string(),
+  "impact": zod.enum(['positive', 'negative']),
+  "detail": zod.string(),
+  "contribution": zod.number()
+})),
+  "historical_pattern": zod.string(),
+  "recommended_action": zod.string(),
+  "suggested_verification": zod.string()
+})
 })
 
 
@@ -168,6 +187,70 @@ export const GetDashboardSummaryResponse = zod.object({
   "avg_probability": zod.number(),
   "model_status": zod.enum(['READY', 'TRAINING', 'DEGRADED']),
   "last_updated": zod.string()
+})
+
+
+/**
+ * @summary Ask the AI risk investigator about a payment
+ */
+export const askRiskInvestigatorBodyQuestionMin = 2;
+
+export const askRiskInvestigatorBodyTransactionTransactionAmountMin = 0.01;
+
+export const askRiskInvestigatorBodyTransactionTransactionHourMin = 0;
+export const askRiskInvestigatorBodyTransactionTransactionHourMax = 23;
+
+export const askRiskInvestigatorBodyTransactionDayOfWeekMin = 0;
+export const askRiskInvestigatorBodyTransactionDayOfWeekMax = 6;
+
+export const askRiskInvestigatorBodyTransactionCountryMin = 2;
+export const askRiskInvestigatorBodyTransactionCountryMax = 2;
+
+export const askRiskInvestigatorBodyTransactionTransactionsLast1hMin = 0;
+
+export const askRiskInvestigatorBodyTransactionTransactionsLast24hMin = 0;
+
+export const askRiskInvestigatorBodyTransactionAvgSpendMin = 0;
+
+export const askRiskInvestigatorBodyTransactionSpendStdDevMin = 0;
+
+export const askRiskInvestigatorBodyTransactionAccountAgeDaysMin = 0;
+
+
+
+export const AskRiskInvestigatorBody = zod.object({
+  "question": zod.string().min(askRiskInvestigatorBodyQuestionMin),
+  "transaction": zod.object({
+  "transaction_amount": zod.number().min(askRiskInvestigatorBodyTransactionTransactionAmountMin),
+  "transaction_hour": zod.number().min(askRiskInvestigatorBodyTransactionTransactionHourMin).max(askRiskInvestigatorBodyTransactionTransactionHourMax),
+  "day_of_week": zod.number().min(askRiskInvestigatorBodyTransactionDayOfWeekMin).max(askRiskInvestigatorBodyTransactionDayOfWeekMax),
+  "merchant_category": zod.enum(['retail', 'travel', 'digital_goods', 'grocery', 'dining', 'services']),
+  "country": zod.string().min(askRiskInvestigatorBodyTransactionCountryMin).max(askRiskInvestigatorBodyTransactionCountryMax),
+  "device_type": zod.enum(['mobile', 'desktop', 'tablet']),
+  "is_new_device": zod.boolean(),
+  "transactions_last_1h": zod.number().min(askRiskInvestigatorBodyTransactionTransactionsLast1hMin),
+  "transactions_last_24h": zod.number().min(askRiskInvestigatorBodyTransactionTransactionsLast24hMin),
+  "avg_spend": zod.number().min(askRiskInvestigatorBodyTransactionAvgSpendMin),
+  "spend_std_dev": zod.number().min(askRiskInvestigatorBodyTransactionSpendStdDevMin),
+  "account_age_days": zod.number().min(askRiskInvestigatorBodyTransactionAccountAgeDaysMin)
+})
+})
+
+export const askRiskInvestigatorResponseConfidenceMin = 0;
+export const askRiskInvestigatorResponseConfidenceMax = 1;
+
+
+
+export const AskRiskInvestigatorResponse = zod.object({
+  "answer": zod.string(),
+  "supporting_evidence": zod.array(zod.object({
+  "feature": zod.string(),
+  "impact": zod.enum(['positive', 'negative']),
+  "detail": zod.string(),
+  "contribution": zod.number()
+})),
+  "next_best_action": zod.string(),
+  "confidence": zod.number().min(askRiskInvestigatorResponseConfidenceMin).max(askRiskInvestigatorResponseConfidenceMax)
 })
 
 

@@ -1,11 +1,12 @@
-import { Activity, BarChart3, Bell, ChevronRight, CircleHelp, Command, ShieldCheck } from 'lucide-react';
+import { Activity, BarChart3, Bell, ChevronRight, CircleHelp, Command, ShieldCheck, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useHealthCheck } from '@workspace/api-client-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const health = useHealthCheck();
+  const [alertsOpen, setAlertsOpen] = useState(false);
   const serviceReady = health.data?.status === 'ok' || health.data?.status === 'healthy' || !!health.data;
 
   return (
@@ -16,8 +17,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             <ShieldCheck size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <div className="text-[15px] font-extrabold tracking-tight text-white">sentinel<span className="text-sidebar-primary">/</span>risk</div>
-            <div className="font-mono text-[9px] uppercase tracking-[.18em] text-sidebar-foreground/50">payment intelligence</div>
+             <div className="text-[15px] font-extrabold tracking-tight text-white">RISK<span className="text-sidebar-primary">WISE</span></div>
+             <div className="font-mono text-[9px] uppercase tracking-[.18em] text-sidebar-foreground/50">risk &amp; trust engine</div>
           </div>
         </div>
 
@@ -25,12 +26,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="mt-3 space-y-1" aria-label="Primary navigation">
           <Link href="/" data-testid="link-overview" className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${location === '/' ? 'bg-sidebar-accent text-white' : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/70 hover:text-white'}`}>
             <Activity size={17} className={location === '/' ? 'text-sidebar-primary' : ''} />
-            <span>Live overview</span>
+               <span>Decision desk</span>
             {location === '/' && <ChevronRight size={14} className="ml-auto text-sidebar-primary" />}
           </Link>
           <Link href="/analytics" data-testid="link-analytics" className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${location === '/analytics' ? 'bg-sidebar-accent text-white' : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/70 hover:text-white'}`}>
             <BarChart3 size={17} className={location === '/analytics' ? 'text-sidebar-primary' : ''} />
-            <span>Model analytics</span>
+               <span>Trust operations</span>
             {location === '/analytics' && <ChevronRight size={14} className="ml-auto text-sidebar-primary" />}
           </Link>
         </nav>
@@ -67,12 +68,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-muted-foreground lg:flex">
               <Command size={13} /> <span>⌘ K</span>
             </div>
-            <button type="button" data-testid="button-notifications" className="relative grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:text-foreground">
+             <button type="button" data-testid="button-notifications" aria-label="Open risk alerts" onClick={() => setAlertsOpen((open) => !open)} className="relative grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:text-foreground">
               <Bell size={16} />
               <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
             </button>
+             {alertsOpen && <div className="absolute right-5 top-14 z-30 w-64 rounded-xl border border-border bg-card p-4 shadow-2xl shadow-black/20">
+               <div className="flex items-center justify-between"><span className="text-xs font-extrabold">Risk alerts</span><button type="button" aria-label="Close risk alerts" data-testid="button-close-alerts" onClick={() => setAlertsOpen(false)} className="text-muted-foreground hover:text-foreground"><X size={14} /></button></div>
+               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">No unresolved operational alerts. The scoring engine is accepting decisions.</p>
+             </div>}
             <div className="hidden h-7 w-px bg-border sm:block" />
-            <div className="hidden text-right sm:block"><div className="text-[11px] font-bold">risk-ops / primary</div><div className="font-mono text-[9px] text-muted-foreground">UTC · 09:41:28</div></div>
+             <div className="hidden text-right sm:block"><div className="text-[11px] font-bold">risk-ops / primary</div><div className="font-mono text-[9px] text-muted-foreground">UTC · live desk</div></div>
           </div>
         </header>
         <main className="app-grid min-h-[calc(100dvh-68px)] px-5 py-7 md:px-8 lg:px-10">{children}</main>

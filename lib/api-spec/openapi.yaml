@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: fraud
     description: Fraud scoring and monitoring operations
+  - name: investigator
+    description: AI investigation and analyst decision support
 paths:
   /healthz:
     get:
@@ -97,6 +99,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
+  /investigator/ask:
+    post:
+      operationId: askRiskInvestigator
+      tags: [investigator]
+      summary: Ask the AI risk investigator about a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvestigatorAskInput"
+      responses:
+        "200":
+          description: Analyst-facing investigation answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestigationAnswer"
+        "400":
+          description: Invalid investigator request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -189,6 +215,15 @@ components:
         prediction:
           type: string
           enum: [HIGH RISK, LOW RISK]
+        risk_score:
+          type: number
+          minimum: 0
+          maximum: 100
+        decision:
+          type: string
+          enum: [APPROVE, REVIEW, BLOCK]
+        recommended_action:
+          type: string
         top_reasons:
           type: array
           items:
@@ -197,7 +232,52 @@ components:
           type: string
         model_version:
           type: string
-      required: [fraud_probability, prediction, top_reasons, scored_at, model_version]
+        investigation:
+          $ref: "#/components/schemas/Investigation"
+      required: [fraud_probability, prediction, risk_score, decision, recommended_action, top_reasons, scored_at, model_version, investigation]
+    Investigation:
+      type: object
+      properties:
+        headline:
+          type: string
+        transaction_summary:
+          type: string
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reason"
+        historical_pattern:
+          type: string
+        recommended_action:
+          type: string
+        suggested_verification:
+          type: string
+      required: [headline, transaction_summary, evidence, historical_pattern, recommended_action, suggested_verification]
+    InvestigatorAskInput:
+      type: object
+      properties:
+        question:
+          type: string
+          minLength: 2
+        transaction:
+          $ref: "#/components/schemas/TransactionInput"
+      required: [question, transaction]
+    InvestigationAnswer:
+      type: object
+      properties:
+        answer:
+          type: string
+        supporting_evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reason"
+        next_best_action:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+      required: [answer, supporting_evidence, next_best_action, confidence]
     TransactionRecord:
       allOf:
         - $ref: "#/components/schemas/TransactionInput"

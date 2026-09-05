@@ -79,40 +79,40 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 219 35% 97%;
-  --foreground: 222 32% 16%;
-  --border: 220 21% 88%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 32% 16%;
-  --card-border: 220 21% 90%;
-  --sidebar: 224 39% 13%;
+  --background: 219 36% 9%;
+  --foreground: 210 25% 92%;
+  --border: 218 27% 23%;
+  --card: 218 34% 13%;
+  --card-foreground: 210 25% 92%;
+  --card-border: 218 27% 23%;
+  --sidebar: 224 44% 7%;
   --sidebar-foreground: 218 27% 86%;
-  --sidebar-border: 224 30% 22%;
+  --sidebar-border: 224 30% 17%;
   --sidebar-primary: 172 70% 47%;
   --sidebar-primary-foreground: 224 39% 13%;
-  --sidebar-accent: 224 31% 20%;
+  --sidebar-accent: 224 34% 15%;
   --sidebar-accent-foreground: 180 32% 91%;
   --sidebar-ring: 172 70% 47%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 32% 16%;
-  --popover-border: 220 21% 88%;
-  --primary: 172 70% 35%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 216 32% 94%;
-  --secondary-foreground: 222 32% 24%;
-  --muted: 216 28% 94%;
-  --muted-foreground: 220 14% 48%;
+  --popover: 218 34% 13%;
+  --popover-foreground: 210 25% 92%;
+  --popover-border: 218 27% 23%;
+  --primary: 172 70% 47%;
+  --primary-foreground: 224 44% 7%;
+  --secondary: 219 29% 18%;
+  --secondary-foreground: 210 25% 92%;
+  --muted: 219 29% 18%;
+  --muted-foreground: 218 15% 65%;
   --accent: 40 92% 58%;
   --accent-foreground: 32 40% 14%;
-  --destructive: 6 69% 53%;
+  --destructive: 6 69% 58%;
   --destructive-foreground: 0 0% 100%;
-  --input: 220 21% 84%;
-  --ring: 172 70% 35%;
-  --chart-1: 172 70% 35%;
+  --input: 218 27% 29%;
+  --ring: 172 70% 47%;
+  --chart-1: 172 70% 47%;
   --chart-2: 40 92% 58%;
-  --chart-3: 6 69% 53%;
-  --chart-4: 216 58% 55%;
-  --chart-5: 280 42% 55%;
+  --chart-3: 6 69% 58%;
+  --chart-4: 216 58% 62%;
+  --chart-5: 280 42% 64%;
 
   --app-font-sans: 'Manrope', sans-serif;
   --app-font-serif: Georgia, serif;
@@ -382,7 +382,7 @@
   body {
     min-width: 320px;
     background:
-      radial-gradient(circle at 88% 6%, hsl(172 70% 35% / 0.07), transparent 22rem),
+      radial-gradient(circle at 88% 6%, hsl(172 70% 47% / 0.08), transparent 22rem),
       hsl(var(--background));
   }
   button, input, select { font: inherit; }
@@ -390,9 +390,23 @@
 }
 
 .app-grid {
-  background-image: linear-gradient(hsl(var(--border) / 0.24) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--border) / 0.24) 1px, transparent 1px);
+  background-image: linear-gradient(hsl(var(--border) / 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.22) 1px, transparent 1px);
   background-size: 32px 32px;
+}
+.panel-label {
+  font-family: var(--app-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.decision-halo {
+  box-shadow: 0 0 0 1px hsl(var(--primary) / .18), 0 20px 48px hsl(var(--primary) / .12);
+}
+.decision-halo.alert {
+  box-shadow: 0 0 0 1px hsl(var(--destructive) / .22), 0 20px 48px hsl(var(--destructive) / .12);
 }
 .noise::after {
   content: '';
