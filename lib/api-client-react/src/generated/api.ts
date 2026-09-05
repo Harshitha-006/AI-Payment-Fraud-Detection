@@ -24,6 +24,8 @@ import type {
   ErrorResponse,
   FraudPrediction,
   HealthStatus,
+  InvestigationAnswer,
+  InvestigatorAskInput,
   ListTransactionsParams,
   ModelMetrics,
   TransactionInput,
@@ -443,4 +445,75 @@ export function useGetDashboardSummary<TData = Awaited<ReturnType<typeof getDash
 
 
 
+
+export const getAskRiskInvestigatorUrl = () => {
+
+
+
+
+  return `/api/investigator/ask`
+}
+
+/**
+ * @summary Ask the AI risk investigator about a payment
+ */
+export const askRiskInvestigator = async (investigatorAskInput: InvestigatorAskInput, options?: Parameters<typeof customFetch>[1]): Promise<InvestigationAnswer> => {
+
+  return customFetch<InvestigationAnswer>(getAskRiskInvestigatorUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(investigatorAskInput)
+  }
+);}
+
+
+
+
+
+export const getAskRiskInvestigatorMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askRiskInvestigator>>, TError,{data: BodyType<InvestigatorAskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askRiskInvestigator>>, TError,{data: BodyType<InvestigatorAskInput>}, TContext> => {
+
+const mutationKey = ['askRiskInvestigator'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askRiskInvestigator>>, {data: BodyType<InvestigatorAskInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  askRiskInvestigator(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskRiskInvestigatorMutationResult = NonNullable<Awaited<ReturnType<typeof askRiskInvestigator>>>
+    export type AskRiskInvestigatorMutationBody = BodyType<InvestigatorAskInput>
+    export type AskRiskInvestigatorMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Ask the AI risk investigator about a payment
+ */
+export const useAskRiskInvestigator = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askRiskInvestigator>>, TError,{data: BodyType<InvestigatorAskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof askRiskInvestigator>>,
+        TError,
+        {data: BodyType<InvestigatorAskInput>},
+        TContext
+      > => {
+      return useMutation(getAskRiskInvestigatorMutationOptions(options));
+    }
 

@@ -5,7 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { FraudPredictionDecision } from './fraudPredictionDecision';
 import type { FraudPredictionPrediction } from './fraudPredictionPrediction';
+import type { Investigation } from './investigation';
 import type { Reason } from './reason';
 
 export interface FraudPrediction {
@@ -15,7 +17,15 @@ export interface FraudPrediction {
      */
   fraud_probability: number;
   prediction: FraudPredictionPrediction;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  risk_score: number;
+  decision: FraudPredictionDecision;
+  recommended_action: string;
   top_reasons: Reason[];
   scored_at: string;
   model_version: string;
+  investigation: Investigation;
 }

@@ -90,6 +90,24 @@ export const FraudPredictionPrediction = {
   LOW_RISK: 'LOW RISK',
 } as const;
 
+export type FraudPredictionDecision = typeof FraudPredictionDecision[keyof typeof FraudPredictionDecision];
+
+
+export const FraudPredictionDecision = {
+  APPROVE: 'APPROVE',
+  REVIEW: 'REVIEW',
+  BLOCK: 'BLOCK',
+} as const;
+
+export interface Investigation {
+  headline: string;
+  transaction_summary: string;
+  evidence: Reason[];
+  historical_pattern: string;
+  recommended_action: string;
+  suggested_verification: string;
+}
+
 export interface FraudPrediction {
   /**
      * @minimum 0
@@ -97,9 +115,34 @@ export interface FraudPrediction {
      */
   fraud_probability: number;
   prediction: FraudPredictionPrediction;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  risk_score: number;
+  decision: FraudPredictionDecision;
+  recommended_action: string;
   top_reasons: Reason[];
   scored_at: string;
   model_version: string;
+  investigation: Investigation;
+}
+
+export interface InvestigatorAskInput {
+  /** @minLength 2 */
+  question: string;
+  transaction: TransactionInput;
+}
+
+export interface InvestigationAnswer {
+  answer: string;
+  supporting_evidence: Reason[];
+  next_best_action: string;
+  /**
+     * @minimum 0
+     * @maximum 1
+     */
+  confidence: number;
 }
 
 export type TransactionRecordPrediction = typeof TransactionRecordPrediction[keyof typeof TransactionRecordPrediction];

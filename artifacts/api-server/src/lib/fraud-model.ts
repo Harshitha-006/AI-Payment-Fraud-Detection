@@ -2,6 +2,8 @@ import type {
   CurvePoint,
   DashboardSummary,
   FraudPrediction,
+  Investigation,
+  InvestigationAnswer,
   ModelMetrics,
   Reason,
   TransactionInput,
@@ -199,13 +201,75 @@ export function scoreTransaction(input: TransactionInput): FraudPrediction {
     (input.merchant_category === "digital_goods" ? 0.08 : 0) +
     (input.country === "NG" || input.country === "BR" ? 0.06 : 0);
   const fraudProbability = Number(clamp(rawScore).toFixed(2));
+  const riskScore = Math.round(fraudProbability * 100);
+  const decision = riskScore >= 80 ? "BLOCK" : riskScore >= 45 ? "REVIEW" : "APPROVE";
+  const recommendedAction =
+    decision === "BLOCK"
+      ? "BLOCK + require additional verification"
+      : decision === "REVIEW"
+        ? "HOLD for analyst review + step-up verification"
+        : "APPROVE and continue monitoring";
+  const investigation = buildInvestigation(input, reasons, riskScore, decision, recommendedAction);
 
   return {
     fraud_probability: fraudProbability,
     prediction: fraudProbability >= 0.5 ? "HIGH RISK" : "LOW RISK",
+    risk_score: riskScore,
+    decision,
+    recommended_action: recommendedAction,
     top_reasons: reasons,
     scored_at: new Date().toISOString(),
     model_version: MODEL_VERSION,
+    investigation,
+  };
+}
+
+function buildInvestigation(
+  input: TransactionInput,
+  reasons: Reason[],
+  riskScore: number,
+  decision: "APPROVE" | "REVIEW" | "BLOCK",
+  recommendedAction: string,
+): Investigation {
+  const multiple = input.transactions_last_1h === 1 ? "transaction" : "transactions";
+  return {
+    headline:
+      decision === "BLOCK"
+        ? "This payment should not pass without verification."
+        : decision === "REVIEW"
+          ? "This payment needs a closer look before it settles."
+          : "This payment fits the account's established pattern.",
+    transaction_summary: `Transaction ${input.transaction_amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })} ${input.country} · risk score ${riskScore}/100 · decision ${decision}`,
+    evidence: reasons,
+    historical_pattern:
+      `User normally spends ${Math.max(1, Math.round(input.avg_spend * 0.55)).toLocaleString("en-IN")}–${Math.round(input.avg_spend * 1.45).toLocaleString("en-IN")} per payment with ${input.account_age_days.toLocaleString("en-IN")} days of history.`,
+    recommended_action: recommendedAction,
+    suggested_verification:
+      decision === "APPROVE"
+        ? "No additional verification recommended."
+        : `Confirm identity with a one-time passcode and review the ${input.transactions_last_1h} ${multiple} from this device.`,
+  };
+}
+
+export function answerInvestigatorQuestion(
+  question: string,
+  input: TransactionInput,
+): InvestigationAnswer {
+  const prediction = scoreTransaction(input);
+  const normalized = question.toLowerCase();
+  const isCounterfactual = normalized.includes("approve") || normalized.includes("if i");
+  const isSimilar = normalized.includes("similar") || normalized.includes("compare");
+  const answer = isCounterfactual
+    ? `Approving this payment would release ${input.transaction_amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })} immediately, but it would bypass the ${prediction.investigation.evidence.length} active risk signals. The safest path is ${prediction.decision === "BLOCK" ? "step-up verification before any release" : "a short review window"}.`
+    : isSimilar
+      ? "The closest pattern is a high-velocity payment from a new device with a large amount deviation. Similar payments are typically resolved with step-up verification before settlement."
+      : `The decision is driven by the combination of ${prediction.investigation.evidence.slice(0, 2).map((reason) => reason.feature.toLowerCase()).join(" and ") || "the observed account context"}. A single signal is not decisive; together they move this payment to ${prediction.decision}.`;
+
+  return {
+    answer,
+    supporting_evidence: prediction.investigation.evidence,
+    next_best_action: prediction.recommended_action,
+    confidence: Number((0.86 + (prediction.risk_score >= 80 ? 0.08 : 0)).toFixed(2)),
   };
 }
 
